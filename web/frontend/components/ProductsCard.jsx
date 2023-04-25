@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, TextContainer, Text } from "@shopify/polaris";
+import { Card, TextContainer, Text, List, Listbox } from "@shopify/polaris";
 import { Toast } from "@shopify/app-bridge-react";
 import { useAppQuery, useAuthenticatedFetch } from "../hooks";
 
@@ -15,7 +15,7 @@ export function ProductsCard() {
     isLoading: isLoadingCount,
     isRefetching: isRefetchingCount,
   } = useAppQuery({
-    url: "/api/products/count",
+    url: "/api/products",
     reactQueryOptions: {
       onSuccess: () => {
         setIsLoading(false);
@@ -27,46 +27,22 @@ export function ProductsCard() {
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
   );
 
-  const handlePopulate = async () => {
-    setIsLoading(true);
-    const response = await fetch("/api/products/create");
-
-    if (response.ok) {
-      await refetchProductCount();
-      setToastProps({ content: "5 products created!" });
-    } else {
-      setIsLoading(false);
-      setToastProps({
-        content: "There was an error creating products",
-        error: true,
-      });
-    }
-  };
-
   return (
     <>
       {toastMarkup}
-      <Card
-        title="Product Counter"
-        sectioned
-        primaryFooterAction={{
-          content: "Populate 5 products",
-          onAction: handlePopulate,
-          loading: isLoading,
-        }}
-      >
-        <TextContainer spacing="loose">
-          <p>
-            Sample products are created with a default title and price. You can
-            remove them at any time.
-          </p>
-          <Text as="h4" variant="headingMd">
-            TOTAL PRODUCTS
-            <Text variant="bodyMd" as="p" fontWeight="semibold">
-              {isLoadingCount ? "-" : data.count}
-            </Text>
-          </Text>
-        </TextContainer>
+      <Card title="Products" sectioned>
+        <Listbox accessibilityLabel="List of all products">
+          {!isLoading &&
+            data.map(item => {
+              console.log(item);
+              return (
+                <Listbox.Option key={item.id} value={item.id}>
+                  {item.title}
+                </Listbox.Option>
+              );
+            })}
+          {isLoading && <Listbox.Loading accessibilityLabel="Loading" />}
+        </Listbox>
       </Card>
     </>
   );
